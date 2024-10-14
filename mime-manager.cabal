@@ -1,0 +1,22 @@
+name:                mime-manager
+version:             0.1.0.0
+synopsis:            A program to manipulate user-specific *.desktop and mimeapps.list files
+description:         A simple program to list and manage mime types and applications
+homepage:            https://github.com/your-username/mime-manager
+-- license:             MIT
+-- license-file:        LICENSE
+author:              Your Name
+maintainer:          your-email@example.com
+copyright:           2023 Your Name
+
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable mime-manager
+  main-is:             MimeManager.hs
+  build-depends:       base >= 4.14 && < 5
+                    , text >= 1.2 && < 2
+                    , directory >= 1.3 && < 2
+                    , filepath >= 1.4 && < 2
+  hs-source-dirs:      src
+  default-language:    Haskell2010
