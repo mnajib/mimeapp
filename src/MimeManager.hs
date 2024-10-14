@@ -29,7 +29,9 @@ listAddedMatchFiletypes :: IO ()
 listAddedMatchFiletypes = do
   mimeAppsListContent <- TIO.readFile mimeAppsListFile
   let matches = parseMimeAppsList mimeAppsListContent
-  forM_ matches $ \(ftype, app) -> putStrLn $ T.unpack ftype ++ " -> " ++ T.unpack app
+  -- forM_ matches $ \(ftype, app) -> putStrLn $ T.unpack ftype ++ " -> " ++ T.unpack app
+  let nonEmptyMatches = filter (\(ftype, app) -> not (T.null ftype) && not (T.null app)) matches
+  forM_ nonEmptyMatches $ \(ftype, app) -> putStrLn $ T.unpack ftype ++ " -> " ++ T.unpack app
 
 -- | List all added match filetypes to applications (short version)
 listAddedMatchFiletypesShort :: IO ()
