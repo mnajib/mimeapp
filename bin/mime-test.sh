@@ -352,7 +352,7 @@ mainIO() {
   if [[ $maybe_exists =~ ^Just ]]; then
     exists=$(fromMaybe "$maybe_exists")
     if [ "$exists" = true ]; then
-      echo "File ${iFile} exists."
+      echo "- File ${iFile} exists."
     else
       echo "- ERR: File ${iFile} does not exist."
     fi
