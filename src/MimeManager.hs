@@ -56,15 +56,16 @@ listDesktopFiles = do
 
 main :: IO ()
 main = do
-  putStrLn "Mime Manager"
-  putStrLn "------------"
-  putStrLn "1. List added match filetypes to applications"
-  putStrLn "2. List added match filetypes to applications (short version)"
-  putStrLn "3. List desktop files"
-  putStrLn "Choose an option: "
-  option <- getLine
-  case option of
-    "1" -> listAddedMatchFiletypes
-    "2" -> listAddedMatchFiletypesShort
-    "3" -> listDesktopFiles
-    _ -> putStrLn "Invalid option"
+  -- putStrLn "Mime Manager"
+  -- putStrLn "------------"
+  -- putStrLn "1. List added match filetypes to applications"
+  -- putStrLn "2. List added match filetypes to applications (short version)"
+  -- putStrLn "3. List desktop files"
+  -- putStrLn "Choose an option: "
+  -- option <- getLine
+  -- case option of
+  --   "1" -> listAddedMatchFiletypes
+  --   "2" -> listAddedMatchFiletypesShort
+  --   "3" -> listDesktopFiles
+  --   _ -> putStrLn "Invalid option"
+  listAddedMatchFiletypes
