@@ -82,6 +82,16 @@ fromMaybe() {
   echo "$result"
 }
 
+# Usage:
+#   file_exists <file>
+file_exists() {
+  if [ -f "${1}" ]; then
+    Maybe true true
+  else
+    Maybe false false
+  fi
+}
+
 #
 # Usage:
 #   findFileIO "$file_name" "$dir1" "$dir2" "$dir3"
@@ -131,8 +141,19 @@ sysDotDesktopDir() {
 # Usage:
 #   filetype <file>
 filetype() {
-  local FILETYPE="$(xdg-mime query filetype "${1}")"
-  echo "${FILETYPE}"
+  #local FILETYPE="$(xdg-mime query filetype "${1}")"
+  #echo "${FILETYPE}"
+
+  local file_type
+  file_type=$(xdg-mime query filetype "${1}" 2>/dev/null)
+
+  if [ $? -eq 0 ]; then
+    #echo "Just $FILETYPE"
+    Maybe "$file_type" true
+  else
+    #echo "Nothing"
+    Maybe "" false
+  fi
 }
 
 #----------------------------------------------------------------------------------
@@ -326,9 +347,28 @@ mainIO() {
   printIO ""
   printIO "For the file \"${iFile}\":"
 
+  # Check if the file exist
+  maybe_exists=$(file_exists "$iFile")
+  if [[ $maybe_exists =~ ^Just ]]; then
+    exists=$(fromMaybe "$maybe_exists")
+    if [ "$exists" = true ]; then
+      echo "File ${iFile} exists."
+    else
+      echo "- ERR: File ${iFile} does not exist."
+    fi
+  else
+    echo "- ERR: File ${iFile} does not exist."
+  fi
+
   # What is the filetype (mime) of the file
-  local ft=$(filetype "${iFile}")
-  printIO "- The filetype is \"${ft}\"."
+  #local ft=$(filetype "${iFile}")
+  local maybe_ft=$(filetype "${iFile}")
+  local ft=$(fromMaybe "$maybe_ft" "unknown")
+  if [ "$ft" = "unknown" ]; then
+    printIO "- ERR: The filetype is unknown."
+  else
+    printIO "- The filetype is \"${ft}\"."
+  fi
 
   #--------------------------------------------------------------------------------------
 
