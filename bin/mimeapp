@@ -14,7 +14,7 @@
 
 printUsage() {
  echo -n "Usage:
-   mime-test.sh <file>
+   mimeapp <file>
 
  Where the file is a file that we will identify what it's mimetype
  and what is the default application currently configured to open the file with the filetype.
@@ -344,6 +344,18 @@ findDotDekstopFileIO() {
 mainIO() {
   # The file in questions
   local iFile="$(inputFile)"
+  maybe_file_path="$iFile"
+  if [ -z "$maybe_file_path" ]; then
+    #Maybe "" false
+    printUsage
+    return
+  fi
+  #if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  #if [ "$maybe_file_path" = "--help" ] || [ "$maybe_file_path" = "-h" ]; then
+  if [ "$maybe_file_path" = "" ] || [ "$maybe_file_path" = "--help" ] || [ "$maybe_file_path" = "-h" ]; then
+    printUsage
+    return
+  fi
   printIO ""
   printIO "For the file \"${iFile}\":"
 
