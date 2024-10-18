@@ -25,7 +25,11 @@
             pkgs.cabal-install # Cabal for building Haskell projects
             pkgs.git        # Git for version control
             pkgs.dialog     # ncurse for CLI
+
             #pkgs.perl540Packages.FileMimeInfo
+            pkgs.xdg-utils
+            #pkgs.handlr
+            pkgs.handlr-regex
           ];
         };
 
