@@ -254,8 +254,18 @@ otherAssociatedApps() {
     fi
   done < "$(sysMimeAppsFile)"
 
-  #printf '%s\n' "${apps[@]}"
-  printf '%s\n' "${apps[@]}" | grep -o '[^; ]*'
+  ##printf '%s\n' "${apps[@]}"
+  #printf '%s\n' "${apps[@]}" | grep -o '[^; ]*'
+
+  #if [ $? -eq 0 ] && [ "$default_app" ]; then
+  if [ "${apps[@]}" ]; then
+    #result=$(printf '%s\n' "${apps[@]}" | grep -o '[^; ]*')
+    result=$(printf '%s\n' "${apps[@]}")
+    echo  $(Maybe "$result" true)
+    #echo  $(Maybe "$(printf '%s\n' "${apps[@]}" | grep -o '[^; ]*')" true)
+    return
+  fi
+  echo $(Maybe "" false)
 }
 
 # Usage:
@@ -417,10 +427,25 @@ mainIO() {
   #printIO "  ========================================"
   printIO "  -> List of other application that can handle the file with filetype \"${ft}\":"
   printIO "     ----------------------------------------"
-  olist=$(otherAssociatedApps "$ft")
-  indent_text "$olist" 7 # indent the text with 4 spaces
+  #olist=$(otherAssociatedApps "$ft")
+  #indent_text "$olist" 7 # indent the text with 4 spaces
+
+  maybe_olist=$(otherAssociatedApps "$ft")
+  if [ "$maybe_olist" = "Nothing" ]; then
+    printIO "       ERR: No other application for filetype \"${ft}\" is found"
+    #return
+  else
+    olist=$(fromMaybe "$maybe_olist" "")
+    #printIO "  -> The default application for filetype \"${ft}\" is \"${da}\"."
+    olist2=$(printf '%s\n' "${olist}" | grep -o '[^; ]*')
+    #indent_text "$olist" 7 # indent the text with 4 spaces
+    indent_text "$olist2" 7 # indent the text with 4 spaces
+  fi
+
   printIO "     ----------------------------------------"
   #printIO "========================================"
+  #--------------------------------------------------------------------------------------
+
 }
 
 #printIO "$(printUsage)"
