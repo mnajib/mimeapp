@@ -30,19 +30,6 @@ USR_MIMEAPPS_FILE="${HOME}/.local/share/applications/mimeapps.list" # mimeinfo.c
 #USR_MIMEAPPS_FILE="${HOME}/.config/mimeapps.list" # user-specific
 
 # Define the Maybe monad
-# The Maybe function is defined to handle only single values of output
-Maybe_OLD() {
-  local value=$1
-  local is_just=$2
-
-  if [ "$is_just" = "true" ]; then
-    echo "Just $value"
-  else
-    echo "Nothing"
-  fi
-}
-
-# Define the Maybe monad
 # The Maybe function is defined to handle both single values and multiple lines of output
 Maybe() {
   local value=$1
@@ -144,8 +131,9 @@ filetype() {
   #local FILETYPE="$(xdg-mime query filetype "${1}")"
   #echo "${FILETYPE}"
 
+  local file=$1
   local file_type
-  file_type=$(xdg-mime query filetype "${1}" 2>/dev/null)
+  file_type=$(xdg-mime query filetype "${file}" 2>/dev/null)
 
   if [ $? -eq 0 ]; then
     #echo "Just $FILETYPE"
@@ -161,15 +149,20 @@ filetype() {
 ## To get what is the default application to handle/open the file with the filetype
 # Usage:
 #   defaultAssociatedApp <filemimetype>
-defaultAssociatedApp_OLD() {
+defaultAssociatedApp_TEST() {
   local file_type=$1
 
   #local DEFAULT_APP="$(handlr get "$1")"
   #echo "${DEFAULT_APP}"
 
   # XXX:
-  local default_app="$(handlr get $file_type)"
-  if [ "$default_app" ]; then
+  #local default_app=$(handlr get "$file_type" 2>/dev/null)
+  ##local default_app=$(xdg-mime query filetype "$file" 2>/dev/null)
+  local default_app=$(xdg-mime query default "$file_type" 2>/dev/null)
+
+  #if [ "$default_app" ]; then
+  #if [ $? -eq 0 ]; then
+  if [ $? -eq 0 ] && [ "$default_app" ]; then
   #if [ $default_app="$(handlr get $file_type)" ]; then
     echo  $(Maybe "$default_app" true)
     return
@@ -180,8 +173,6 @@ defaultAssociatedApp_OLD() {
 defaultAssociatedApp() {
   local file_type=$1
   local mimeappslist_file=$USR_MIMEAPPS_FILE
-
-  # XXX: xdg-mime query default application/pdf
 
   while IFS= read -r line; do
     if [[ $line =~ ^\[Default\ Applications\] ]]; then
@@ -344,6 +335,9 @@ findDotDekstopFileIO() {
 mainIO() {
   # The file in questions
   local iFile="$(inputFile)"
+
+  #--------------------------------------------------------------------------------------
+  # Check the arguments from user
   maybe_file_path="$iFile"
   if [ -z "$maybe_file_path" ]; then
     #Maybe "" false
@@ -359,71 +353,73 @@ mainIO() {
   printIO ""
   printIO "For the file \"${iFile}\":"
 
+  #--------------------------------------------------------------------------------------
   # Check if the file exist
   maybe_exists=$(file_exists "$iFile")
   if [[ $maybe_exists =~ ^Just ]]; then
     exists=$(fromMaybe "$maybe_exists")
     if [ "$exists" = true ]; then
-      echo "- File ${iFile} exists."
+      echo "  -> File ${iFile} exists."
     else
-      echo "- ERR: File ${iFile} does not exist."
+      echo "  -> ERR: File ${iFile} does not exist."
     fi
   else
-    echo "- ERR: File ${iFile} does not exist."
+    echo "  -> ERR: File ${iFile} does not exist."
   fi
 
+  #--------------------------------------------------------------------------------------
   # What is the filetype (mime) of the file
   #local ft=$(filetype "${iFile}")
   local maybe_ft=$(filetype "${iFile}")
   local ft=$(fromMaybe "$maybe_ft" "unknown")
   if [ "$ft" = "unknown" ]; then
-    printIO "- ERR: The filetype is unknown."
+    printIO "  -> ERR: The filetype is unknown."
   else
-    printIO "- The filetype is \"${ft}\"."
+    printIO "  -> The filetype is \"${ft}\"."
   fi
 
   #--------------------------------------------------------------------------------------
-
   # What is the default application to open the file
   #da=$(defaultAssociatedApp "${ft}")
   #printIO "- The default application for the filetype is \"${da}\"."
   local maybe_defaultApp=$(defaultAssociatedApp "${ft}")
   if [ "$maybe_defaultApp" = "Nothing" ]; then
-    printIO "- ERR: Default application for filetype \"${ft}\" is not found"
+    printIO "  -> ERR: Default application for filetype \"${ft}\" is not found"
     #return
   else
     da=$(fromMaybe "$maybe_defaultApp" "")
-    printIO "- The default application for filetype \"${ft}\" is \"${da}\"."
+    printIO "  -> The default application for filetype \"${ft}\" is \"${da}\"."
   fi
 
   #--------------------------------------------------------------------------------------
-
   # Find where is the file that mention how to start the application (*.desktop)
   local directories=("${USR_DOTDESKTOP_DIR}" "${SYS_DOTDESKTOP_DIR}")
   #directory=$(findFileIO "${da}" "${directories[@]}")
   #printIO "- Found \"${da}\" at \"${directory}/\"."
   local maybe_directory=$(dirContainFile "${da}" "${directories[@]}")
   if [ "$maybe_directory" = "Nothing" ]; then
-    printIO "- ERR: File \"${da}\" (that defind how to open the default application) is not found."
+    printIO "  -> ERR: File \"${da}\" (that defind how to open the default application) is not found."
     #return
   else
     directory=$(fromMaybe "$maybe_directory" "")
-    printIO "- Found \"${da}\" at \"${directory}/\"."
+    printIO "  -> Found \"${da}\" at \"${directory}/\"."
   fi
 
+  #--------------------------------------------------------------------------------------
   # What is the contents of the file (*.desktop)
   #printIO "- Here is the contens of \"${directory}/${da}\" file:"
   #printIO "----------------------------------------"
   #printIO "$(readFileIO "$directory/$da")"
   #printIO "----------------------------------------"
 
+  #--------------------------------------------------------------------------------------
   # List of other applications that able to handle the file (the file in questions @ the input file)
   #printIO "  ========================================"
-  printIO "- List of other application that can handle the file with filetype \"${ft}\":"
-  printIO "    ----------------------------------------"
+  printIO "  -> List of other application that can handle the file with filetype \"${ft}\":"
+  printIO "     ----------------------------------------"
   olist=$(otherAssociatedApps "$ft")
-  indent_text "$olist" 4 # indent the text with 4 spaces
-  printIO "    ----------------------------------------"
+  indent_text "$olist" 7 # indent the text with 4 spaces
+  printIO "     ----------------------------------------"
   #printIO "========================================"
 }
 
