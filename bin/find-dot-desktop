@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+DIR1="${HOME}/.local/share/applications/"
+DIR2="/run/current-system/sw/share/applications/"
+
+#find "$DIR1" "$DIR2" | grep "\.desktop$"
+find "$DIR1" | grep "\.desktop$"
+find "$DIR2" | grep "\.desktop$"

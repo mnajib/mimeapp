@@ -149,7 +149,7 @@ filetype() {
 ## To get what is the default application to handle/open the file with the filetype
 # Usage:
 #   defaultAssociatedApp <filemimetype>
-defaultAssociatedApp_TEST() {
+defaultAssociatedApp() {
   local file_type=$1
 
   #local DEFAULT_APP="$(handlr get "$1")"
@@ -170,7 +170,7 @@ defaultAssociatedApp_TEST() {
   echo $(Maybe "" false)
 }
 #
-defaultAssociatedApp() {
+defaultAssociatedApp_TEST() {
   local file_type=$1
   local mimeappslist_file=$USR_MIMEAPPS_FILE
 
@@ -206,15 +206,15 @@ defaultAssociatedApp() {
   #echo $(Maybe "" false)
 }
 
-#----------------------------------------------------------------------------------
-
-# other apps that can open/handle the filetype
-# Usage:
-#   otherAssociatedApps <filemimetype>
 otherAssociatedApps() {
   #local OTHER_APPS="$(handlr get "$1")"
   local mime_type=$1
   local mimeappslist_file=$USR_MIMEAPPS_FILE
+  local apps=()
+
+  #cat  ~/.local/share/applications/mime* /run/current-system/sw/share/applications/mime* | grep -i 'pdf' | tr ';' "\n" | sed 's/=/\n-------------------------------------------------\n/g'
+  #cat  ~/.local/share/applications/mime* /run/current-system/sw/share/applications/mime* | grep 'org.gnome.Evince.desktop'
+  #rg 'Evince'  ~/.local/share/applications/ /run/current-system/sw/share/applications/
 
   #while IFS='=' read -r key value; do
   #  if [[ $key =~ ^$mime_type ]]; then
@@ -222,11 +222,12 @@ otherAssociatedApps() {
   #  fi
   #done < "$mimeappslist_file"
 
-  #  if [[ $line =~ ^\[Added\ Associations\] ]]; then
-  #  if [[ $line =~ ^\[Default\ Applications\] ]]; then
-  #  if [[ $line =~ ^\[Removed\ Associations\] ]]; then
   while IFS= read -r line; do
     if [[ $line =~ ^\[Added\ Associations\] ]]; then
+      in_section=1
+    elif [[ $line =~ ^\[Default\ Applications\] ]]; then
+      in_section=1
+    elif [[ $line =~ ^\[Removed\ Associations\] ]]; then
       in_section=1
     elif [[ $line =~ ^\[ ]]; then
       in_section=0
@@ -242,6 +243,10 @@ otherAssociatedApps() {
 
   while IFS= read -r line; do
     if [[ $line =~ ^\[Added\ Associations\] ]]; then
+      in_section=1
+    elif [[ $line =~ ^\[Default\ Applications\] ]]; then
+      in_section=1
+    elif [[ $line =~ ^\[Removed\ Associations\] ]]; then
       in_section=1
     elif [[ $line =~ ^\[ ]]; then
       in_section=0
@@ -263,6 +268,48 @@ otherAssociatedApps() {
     result=$(printf '%s\n' "${apps[@]}")
     echo  $(Maybe "$result" true)
     #echo  $(Maybe "$(printf '%s\n' "${apps[@]}" | grep -o '[^; ]*')" true)
+    return
+  fi
+  echo $(Maybe "" false)
+}
+
+# Usage:
+#   otherAppsThatCanHandle <file_type>
+otherAppsThatCanHandle() {
+
+  #--------------------------------------------------------------------------------------
+  # List of other applications that able to handle the file (the file in questions @ the input file)
+  #printIO "  ========================================"
+  printIO "  -> List of other application that can handle the file with filetype \"${ft}\":"
+  printIO "     ----------------------------------------"
+  #olist=$(otherAssociatedApps "$ft")
+  #indent_text "$olist" 7 # indent the text with 4 spaces
+
+  maybe_olist=$(otherAssociatedApps "$ft")
+  if [ "$maybe_olist" = "Nothing" ]; then
+    printIO "       ERR: No other application for filetype \"${ft}\" is found"
+    #return
+  else
+    olist=$(fromMaybe "$maybe_olist" "")
+    #printIO "  -> The default application for filetype \"${ft}\" is \"${da}\"."
+    olist2=$(printf '%s\n' "${olist}" | grep -o '[^; ]*')
+    #indent_text "$olist" 7 # indent the text with 4 spaces
+    indent_text "$olist2" 7 # indent the text with 4 spaces
+  fi
+
+  printIO "     ----------------------------------------"
+}
+
+#----------------------------------------------------------------------------------
+
+# other apps that can open/handle the filetype
+# Usage:
+#   otherAssociatedApps <filemimetype>
+availableDotDesktops() {
+  local ddesktop=$(find ${USR_DOTDESKTOP_DIR} ${SYS_DOTDESKTOP_DIR} | grep -i "\.desktop$" | sort)
+
+  if [ "$ddesktops" ]; then
+    echo  $(Maybe "$ddesktop" true)
     return
   fi
   echo $(Maybe "" false)
@@ -425,25 +472,9 @@ mainIO() {
   #--------------------------------------------------------------------------------------
   # List of other applications that able to handle the file (the file in questions @ the input file)
   #printIO "  ========================================"
-  printIO "  -> List of other application that can handle the file with filetype \"${ft}\":"
-  printIO "     ----------------------------------------"
-  #olist=$(otherAssociatedApps "$ft")
-  #indent_text "$olist" 7 # indent the text with 4 spaces
-
-  maybe_olist=$(otherAssociatedApps "$ft")
-  if [ "$maybe_olist" = "Nothing" ]; then
-    printIO "       ERR: No other application for filetype \"${ft}\" is found"
-    #return
-  else
-    olist=$(fromMaybe "$maybe_olist" "")
-    #printIO "  -> The default application for filetype \"${ft}\" is \"${da}\"."
-    olist2=$(printf '%s\n' "${olist}" | grep -o '[^; ]*')
-    #indent_text "$olist" 7 # indent the text with 4 spaces
-    indent_text "$olist2" 7 # indent the text with 4 spaces
-  fi
-
-  printIO "     ----------------------------------------"
-  #printIO "========================================"
+  #printIO "  -> List of other application that can handle the file with filetype \"${ft}\":"
+  #printIO "     ----------------------------------------"
+  #otherAppsThatCanHandle "$ft"
   #--------------------------------------------------------------------------------------
 
 }
